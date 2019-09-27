@@ -92,9 +92,3 @@ const config = {
 }
 scaffoldify(config)
 ```
-
-```js
-const CheckList = require("@webpack-cli/webpack-scaffold").CheckList;
-
-CheckList("entry", "what kind of entry do you want?", ["Array", "Function"]);
-```
