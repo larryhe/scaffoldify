@@ -1,0 +1,44 @@
+{
+    "name": "scaffoldify",
+    "version": "0.0.1",
+    "description": "a scaffold framework to simplify scaffolding process",
+    "main": "index.js",
+    "scripts": {
+        "test": "jest"
+    },
+    "bin": {
+        "scaffoldify": "./bin/cli.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/larryhe/scaffoldify.git"
+    },
+    "keywords": [
+        "scaffold",
+        "code",
+        "generation"
+    ],
+    "author": "larry.he",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/larryhe/scaffoldify/issues"
+    },
+    "homepage": "https://github.com/larryhe/scaffoldify#readme",
+    "dependencies": {
+        "chalk": "^2.4.2",
+        "fs-extra": "^8.1.0",
+        "inquirer": "^7.0.0",
+        "lodash": "^4.17.15",
+        "minimist": "^1.2.0"
+    },
+    "husky": {
+        "hooks": {
+            "pre-commit": "pretty-quick --staged"
+        }
+    },
+    "devDependencies": {
+        "husky": "^3.0.5",
+        "prettier": "^1.18.2",
+        "pretty-quick": "^1.11.1"
+    }
+}
