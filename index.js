@@ -17,10 +17,10 @@ function getMapper(config, tmpl) {
     tmpl = tmpl.replace(prefix, '');
     const maper = mappers.find(m => {
         return m.from.endsWith(tmpl);
-    });
+    }) || {};
     return answers => {
         let to = path.basename(tmpl, '.tmpl');
-        if (maper) {
+        if (maper.to) {
             to = maper.to;
         }
         if (isFunction(to)) {
@@ -28,7 +28,10 @@ function getMapper(config, tmpl) {
         } else {
             to = to.replace(/\[(.+?)\]/g, (match, group) => answers[group]);
         }
-        return to;
+        return {
+            to,
+            overwrite: maper.overwrite === false ? false : true,
+        };
     };
 }
 
@@ -43,6 +46,9 @@ function compile(raw) {
     if (!fs.existsSync(templates)) {
         throw new Error(`templates [${templates}] do not exist `);
     }
+    if(!isFunction(raw.transform)) {
+        raw.transform = answers => answers;
+    }
     raw.cwd = raw.cwd || cwd();
     raw.mappers = raw.mappers || [];
     raw.mappers = raw.mappers.filter(or(isString, isObject)).map(m => {
@@ -50,10 +56,12 @@ function compile(raw) {
             return {
                 from: m.from.trim(),
                 to: isFunction(m.to) ? m.to : m.to.trim(),
+                overwrite: m.overwrite === false ? false : true,
             };
         } else {
             const items = m.split('=>');
-            return { from: items[0].trim(), to: items[1].trim() };
+            const to = items[1].trim();
+            return { from: items[0].trim(), to: to.replace(/\?.+/g, ''), overwrite: /overwrite=false/.test(to) ? false : true };
         }
     });
 }
@@ -65,12 +73,27 @@ function compile(raw) {
 function scaffoldify(config) {
     compile(config);
     const templateHome = config.templates;
-    inquirer.prompt(config.inquiries).then(answers => {
+    return inquirer.prompt(config.inquiries)
+        .then(answers => {
+            const options = config.options || {};
+            return {
+                ...options,
+                ...answers,
+            };
+        })
+        .then(config.transform)
+        .then(answers => {
         traverse(templateHome, tmpl => {
             const mapper = getMapper(config, tmpl);
             const dest = mapper(answers);
-            copyTmpl(tmpl, path.join(config.cwd, dest), answers);
+            if(dest.to) {
+                const target = path.join(config.cwd, dest.to);
+                if(!fs.existsSync(target) || dest.overwrite) {
+                    copyTmpl(tmpl, target, answers);
+                }
+            }
         });
+        return answers;
     });
 }
 

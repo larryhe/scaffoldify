@@ -9,9 +9,14 @@ Scaffoldify is a tool to simplify `scaffold`. with its command line interface or
 -   [Usage](#Usage)
 -   [Configuration](#Configuration)
     -   [cwd](#cwd)
+    -   [options](#options)
+    -   [transform](#transform)
     -   [templates](#templates)
     -   [inquiries](#inquiries)
     -   [mappers](#mappers)
+        -   [from](#from)
+        -   [to](#to)
+        -   [overwrite](#overwrite)
 -   [Template](#Template)
 -   [Node API](#node-api)
 
@@ -29,13 +34,16 @@ scaffoldify --help
 
 # Configuration
 
-Configuration can either be a JSON file `.scaffoldifyrc` or a JS file `scaffoldify.config.js` that returns a JSON
+Configuration can either be a JSON file or CJS module that returns a JSON. when you run the scaffoldify command line and config option `--config` is not provided, 
+it will lookup `scaffoldify.config.js` or `.scaffoldifyrc` file in current and user home directory.
 
 ```js
 const path = require('path');
 const fs = require('fs');
 module.exports = {
     cwd: '/path/to/your/working/directory',
+    options: {},
+    transform: value => value,
     templates: '/path/to/your/templates/folder',
     inquiries: [
         {
@@ -52,9 +60,9 @@ module.exports = {
         },
     ],
     mappers: [
-        'package.json.tmpl => [projectName]/package.json',
-        { from: 'index.js.tmpl', to: '[projectName]/src/index.js'},
-        { from: 'index.test.js.tmpl',to: answers => `${answers.projectName}/src/__test__/index.js`}
+        { from: 'index.js.tmpl', to: '[projectName]/src/index.js', overwrite: false},
+        { from: 'index.test.js.tmpl',to: answers => `${answers.projectName}/src/__test__/index.js`},
+        'package.json.tmpl => [projectName]/package.json?overwrite=false',
     ]
 }
 ```
@@ -62,6 +70,14 @@ module.exports = {
 ## cwd
 
 Currently working directory on based of which the template will be copied to. `process.cwd()` will be used if not specified.
+
+## options
+
+initial config hashes passed along with inquiry answers to scaffoldify tool. A default empty object `{}` will be used if omitted.
+
+## transform
+
+A custom function used to transform hashes before passing to scaffoldify tool. A default identify function `value => value` will be used if omitted.
 
 ## templates
 
@@ -73,10 +89,27 @@ List of object to get user's inputs. It's based on [Inquirer](https://github.com
 
 ## mappers
 
-List of mapper which tells scaffoldify where to place the template. the mapper takes two forms (string or object). string form follows a specified a syntax `your/template => path/to/destination`.
-the left part of `=>` is the template path and right part is the destination. You can put variables in brackets on the right part that will be replaced with user's input. 
-assuming `/home` as `cwd` `package.json.tmpl => ui/package.json` will put `package.json.tmpl` to `/home/ui/package.json` after replacing all the placeholders in the template. refer to template section for more information. 
-You can also use object to specify from and to similar to string form. to can also take customized function. 
+List of mapper which tells scaffoldify where to place template. the mapper definition takes two forms (object or string). If a mapper is not defined for the template,
+a default mapper `path/to/your/template.ext.tmpl => path/to/your/template.ext` will used.
+
+### from
+
+path to your template file
+
+### to
+
+the new location where your template will be placed. you can also use variables enclosed with brackets that will be resolved with
+hashes passed in. e.g `[ui]/index.js` will be resolved to `ui/src/index.js` given the hashes `{ui: 'ui/src'}`
+
+### overwrite
+
+tell if you want to overwrite a file if it existed, a default value true will be used if omitted. if the mapper definition is string, a query 
+parameter can be used to specify overwrite flag. below two mapper definitions are equivalent. 
+```
+index.js.tmpl => [ui]/index.js?overwrite=false
+
+{from: 'index.js.tmpl', to: '[ui]/index.js', overwrite: false}
+```
 
 # Template
 
