@@ -1,6 +1,6 @@
 # scaffoldify
 
-Scaffoldify is a tool to simplify `scaffold`. with its command line interface or Node API, you can scaffold pretty much anything with little or zero code. 
+Declarative and reusable scaffolding framework. with scaffoldify configuration API, you can use JSON to describe the scaffolding process.  
 
 
 # Table of Contents
@@ -49,7 +49,7 @@ module.exports = {
         {
             type: 'input',
             name: 'projectName',
-            message: 'Please enter a name for your react project:',
+            message: 'Enter name for your react project:',
             default: 'my-react-project',
             validate: input => {
                 if(!/^([a-z_-]+)+$/.test(input)) {

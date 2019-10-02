@@ -19,7 +19,9 @@ function getMapper(config, tmpl) {
         return m.from.endsWith(tmpl);
     }) || {};
     return answers => {
-        let to = path.basename(tmpl, '.tmpl');
+        const base = path.basename(tmpl, '.tmpl');
+        const dir = path.dirname(tmpl);
+        let to = path.join(dir, base);
         if (maper.to) {
             to = maper.to;
         }
